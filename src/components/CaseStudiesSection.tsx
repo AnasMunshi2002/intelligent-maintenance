@@ -53,7 +53,7 @@ const CaseStudiesSection = () => {
             Industry <span className="text-gradient-primary">Validation</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            The AIM-Framework is informed by transformation journeys at five industry-leading organisations.
+            IntelliOps is informed by transformation journeys at five industry-leading organisations.
           </p>
         </motion.div>
 

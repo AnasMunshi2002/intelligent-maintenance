@@ -29,7 +29,7 @@ const HeroSection = () => {
           </h1>
 
           <p className="font-body text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            AIM-Framework integrates AI-driven refactoring with DevSecOps automation. 
+            IntelliOps integrates AI-driven refactoring with DevSecOps automation. 
             Reduce technical debt by <span className="text-primary font-semibold">40%</span>, 
             deploy <span className="text-accent font-semibold">3x faster</span>, 
             and maintain with confidence.
