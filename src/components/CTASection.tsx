@@ -18,7 +18,7 @@ const CTASection = () => {
             Start Maintaining <span className="text-gradient-primary">Intelligently</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto mb-10">
-            The AIM-Framework provides the reference architecture your team needs to converge AI and DevOps for smarter software maintenance.
+            IntelliOps provides the reference architecture your team needs to converge AI and DevOps for smarter software maintenance.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="lg" className="gap-2">

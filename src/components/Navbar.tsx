@@ -8,8 +8,7 @@ const Navbar = () => {
           <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
             <Cpu className="w-4 h-4 text-primary" />
           </div>
-          <span className="font-display text-sm font-bold tracking-wider text-foreground">AIM</span>
-          <span className="font-display text-xs text-muted-foreground tracking-wider">Framework</span>
+          <span className="font-display text-sm font-bold tracking-wider text-foreground">IntelliOps</span>
         </div>
         
         <div className="hidden md:flex items-center gap-8">

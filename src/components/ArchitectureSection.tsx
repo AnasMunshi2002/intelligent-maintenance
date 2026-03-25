@@ -77,7 +77,7 @@ const ArchitectureSection = () => {
             Five-Layer <span className="text-gradient-primary">Architecture</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            The AIM-Framework's modular design ensures each concern is addressed by a dedicated, interoperable layer.
+            IntelliOps' modular design ensures each concern is addressed by a dedicated, interoperable layer.
           </p>
         </motion.div>
 
