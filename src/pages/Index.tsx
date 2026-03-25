@@ -1,16 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import MetricsSection from "@/components/MetricsSection";
+import ArchitectureSection from "@/components/ArchitectureSection";
+import CaseStudiesSection from "@/components/CaseStudiesSection";
+import CTASection from "@/components/CTASection";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <HeroSection />
+      <MetricsSection />
+      <ArchitectureSection />
+      <CaseStudiesSection />
+      <CTASection />
+      
+      {/* Footer */}
+      <footer className="border-t border-border py-8">
+        <div className="container mx-auto px-6 text-center">
+          <p className="font-display text-xs text-muted-foreground tracking-wider">
+            AIM-Framework — AI-Driven Intelligent Maintenance © 2026
+          </p>
+          <p className="text-xs text-muted-foreground/50 mt-1">
+            University of West London · Mohammad Anas Abdulhameed Munshi
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
