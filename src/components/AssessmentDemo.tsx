@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, AlertTriangle, ShieldAlert, GitBranch, FileCode, Loader2 } from "lucide-react";
+import { Search, AlertTriangle, ShieldAlert, GitBranch, FileCode, Loader2, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const SAMPLE_REPOS = [
   { name: "acme/web-dashboard", lang: "TypeScript" },
