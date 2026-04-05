@@ -10,7 +10,7 @@ const metrics = [
 
 const MetricsSection = () => {
   return (
-    <section className="py-24 relative">
+    <section id="metrics" className="py-24 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-card/30 to-background" />
       <div className="relative z-10 container mx-auto px-6">
         <motion.div
