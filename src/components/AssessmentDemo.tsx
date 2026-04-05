@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, AlertTriangle, ShieldAlert, GitBranch, FileCode, Loader2 } from "lucide-react";
+import { Search, AlertTriangle, ShieldAlert, GitBranch, FileCode, Loader2, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const SAMPLE_REPOS = [
   { name: "acme/web-dashboard", lang: "TypeScript" },
@@ -95,7 +96,60 @@ const generateResults = (repo: string): ScanResult => {
       ],
     },
   };
-  return dataMap[repo];
+
+  if (dataMap[repo]) return dataMap[repo];
+
+  // Generate randomised results for custom GitHub repos
+  const seed = repo.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const rand = (min: number, max: number) => min + ((seed * 9301 + 49297) % 233280) / 233280 * (max - min);
+  const randInt = (min: number, max: number) => Math.round(rand(min, max));
+  const scoreFor = (base: number) => {
+    const s = Math.min(100, Math.max(0, randInt(base - 20, base + 20)));
+    const grade = s >= 90 ? "A" : s >= 80 ? "B+" : s >= 70 ? "B" : s >= 60 ? "C" : s >= 50 ? "D" : "F";
+    const color = s >= 70 ? "text-emerald-400" : s >= 50 ? "text-amber-400" : "text-red-400";
+    return { score: s, grade, color };
+  };
+
+  const complexity = scoreFor(randInt(30, 85));
+  const duplication = scoreFor(randInt(40, 90));
+  const security = scoreFor(randInt(25, 80));
+  const deps = scoreFor(randInt(30, 85));
+  const tests = scoreFor(randInt(15, 80));
+
+  const totalIssues = randInt(12, 78);
+  const techDebtHours = randInt(24, 220);
+
+  const severities: Finding["severity"][] = ["critical", "high", "high", "medium", "medium", "low"];
+  const categories = ["Security", "Complexity", "Duplication", "Dependencies", "Security", "Style"];
+  const messages = [
+    "Potential injection vulnerability detected in request handler",
+    "Cyclomatic complexity exceeds recommended threshold",
+    "Duplicated logic found across multiple modules",
+    "Outdated dependency with known CVEs",
+    "Missing rate limiting on public endpoints",
+    "Inconsistent error handling patterns",
+  ];
+  const files = ["src/api/handler", "src/core/engine", "src/utils/helpers", "package.json", "src/routes/auth", "src/lib/format"];
+
+  return {
+    repo,
+    totalIssues,
+    techDebtHours,
+    healthScores: [
+      { category: "Code Complexity", ...complexity },
+      { category: "Duplication", ...duplication },
+      { category: "Security", ...security },
+      { category: "Dependencies", ...deps },
+      { category: "Test Coverage", ...tests },
+    ],
+    findings: severities.map((sev, i) => ({
+      severity: sev,
+      category: categories[i],
+      message: messages[i],
+      file: files[i],
+      line: randInt(1, 300),
+    })),
+  };
 };
 
 const severityConfig = {
@@ -122,11 +176,30 @@ const AssessmentDemo = () => {
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [githubUrl, setGithubUrl] = useState("");
+  const [urlError, setUrlError] = useState("");
+
+  const parseGithubUrl = (url: string): string | null => {
+    const match = url.match(/github\.com\/([^/]+\/[^/]+)/);
+    if (match) return match[1].replace(/\.git$/, "");
+    return null;
+  };
+
+  const handleGithubScan = () => {
+    setUrlError("");
+    const parsed = parseGithubUrl(githubUrl.trim());
+    if (!parsed) {
+      setUrlError("Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo)");
+      return;
+    }
+    handleScan(parsed);
+  };
 
   const handleScan = (repo: string) => {
     setSelectedRepo(repo);
     setScanning(true);
     setResult(null);
+    setUrlError("");
     setTimeout(() => {
       setResult(generateResults(repo));
       setScanning(false);
@@ -159,8 +232,47 @@ const AssessmentDemo = () => {
           </p>
         </motion.div>
 
-        {/* Repo selector */}
+        {/* GitHub URL input */}
         <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Link2 className="w-4 h-4 text-primary" />
+                <span className="font-display text-sm font-semibold text-foreground">Scan Your Repository</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Paste a GitHub repository URL to run a simulated Layer 1 assessment
+              </p>
+              <div className="flex gap-3">
+                <Input
+                  placeholder="https://github.com/owner/repository"
+                  value={githubUrl}
+                  onChange={(e) => { setGithubUrl(e.target.value); setUrlError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && !scanning && handleGithubScan()}
+                  disabled={scanning}
+                  className="flex-1 bg-background border-border font-mono text-sm"
+                />
+                <Button
+                  onClick={handleGithubScan}
+                  disabled={scanning || !githubUrl.trim()}
+                  className="shrink-0"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Scan
+                </Button>
+              </div>
+              {urlError && (
+                <p className="text-xs text-destructive mt-2">{urlError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-border" />
+              <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground">or try a sample</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+          </div>
+
           <div className="grid sm:grid-cols-3 gap-4 mb-8">
             {SAMPLE_REPOS.map((repo) => (
               <motion.button
