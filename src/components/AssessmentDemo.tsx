@@ -272,6 +272,8 @@ const AssessmentDemo = () => {
               <div className="flex-1 h-px bg-border" />
             </div>
           </div>
+
+          <div className="grid sm:grid-cols-3 gap-4 mb-8">
             {SAMPLE_REPOS.map((repo) => (
               <motion.button
                 key={repo.name}
