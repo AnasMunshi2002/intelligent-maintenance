@@ -176,6 +176,8 @@ const AssessmentDemo = () => {
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [githubUrl, setGithubUrl] = useState("");
+  const [urlError, setUrlError] = useState("");
 
   const handleScan = (repo: string) => {
     setSelectedRepo(repo);
