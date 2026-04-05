@@ -232,9 +232,46 @@ const AssessmentDemo = () => {
           </p>
         </motion.div>
 
-        {/* Repo selector */}
+        {/* GitHub URL input */}
         <div className="max-w-4xl mx-auto">
-          <div className="grid sm:grid-cols-3 gap-4 mb-8">
+          <div className="mb-8">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Link2 className="w-4 h-4 text-primary" />
+                <span className="font-display text-sm font-semibold text-foreground">Scan Your Repository</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Paste a GitHub repository URL to run a simulated Layer 1 assessment
+              </p>
+              <div className="flex gap-3">
+                <Input
+                  placeholder="https://github.com/owner/repository"
+                  value={githubUrl}
+                  onChange={(e) => { setGithubUrl(e.target.value); setUrlError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && !scanning && handleGithubScan()}
+                  disabled={scanning}
+                  className="flex-1 bg-background border-border font-mono text-sm"
+                />
+                <Button
+                  onClick={handleGithubScan}
+                  disabled={scanning || !githubUrl.trim()}
+                  className="shrink-0"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Scan
+                </Button>
+              </div>
+              {urlError && (
+                <p className="text-xs text-destructive mt-2">{urlError}</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-border" />
+              <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground">or try a sample</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+          </div>
             {SAMPLE_REPOS.map((repo) => (
               <motion.button
                 key={repo.name}
