@@ -96,7 +96,60 @@ const generateResults = (repo: string): ScanResult => {
       ],
     },
   };
-  return dataMap[repo];
+
+  if (dataMap[repo]) return dataMap[repo];
+
+  // Generate randomised results for custom GitHub repos
+  const seed = repo.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const rand = (min: number, max: number) => min + ((seed * 9301 + 49297) % 233280) / 233280 * (max - min);
+  const randInt = (min: number, max: number) => Math.round(rand(min, max));
+  const scoreFor = (base: number) => {
+    const s = Math.min(100, Math.max(0, randInt(base - 20, base + 20)));
+    const grade = s >= 90 ? "A" : s >= 80 ? "B+" : s >= 70 ? "B" : s >= 60 ? "C" : s >= 50 ? "D" : "F";
+    const color = s >= 70 ? "text-emerald-400" : s >= 50 ? "text-amber-400" : "text-red-400";
+    return { score: s, grade, color };
+  };
+
+  const complexity = scoreFor(randInt(30, 85));
+  const duplication = scoreFor(randInt(40, 90));
+  const security = scoreFor(randInt(25, 80));
+  const deps = scoreFor(randInt(30, 85));
+  const tests = scoreFor(randInt(15, 80));
+
+  const totalIssues = randInt(12, 78);
+  const techDebtHours = randInt(24, 220);
+
+  const severities: Finding["severity"][] = ["critical", "high", "high", "medium", "medium", "low"];
+  const categories = ["Security", "Complexity", "Duplication", "Dependencies", "Security", "Style"];
+  const messages = [
+    "Potential injection vulnerability detected in request handler",
+    "Cyclomatic complexity exceeds recommended threshold",
+    "Duplicated logic found across multiple modules",
+    "Outdated dependency with known CVEs",
+    "Missing rate limiting on public endpoints",
+    "Inconsistent error handling patterns",
+  ];
+  const files = ["src/api/handler", "src/core/engine", "src/utils/helpers", "package.json", "src/routes/auth", "src/lib/format"];
+
+  return {
+    repo,
+    totalIssues,
+    techDebtHours,
+    healthScores: [
+      { category: "Code Complexity", ...complexity },
+      { category: "Duplication", ...duplication },
+      { category: "Security", ...security },
+      { category: "Dependencies", ...deps },
+      { category: "Test Coverage", ...tests },
+    ],
+    findings: severities.map((sev, i) => ({
+      severity: sev,
+      category: categories[i],
+      message: messages[i],
+      file: files[i],
+      line: randInt(1, 300),
+    })),
+  };
 };
 
 const severityConfig = {
