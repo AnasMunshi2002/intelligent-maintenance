@@ -12,13 +12,18 @@ const Navbar = () => {
         </div>
         
         <div className="hidden md:flex items-center gap-8">
-          {["Architecture", "Metrics", "Case Studies"].map((item) => (
+          {[
+            { label: "Architecture", href: "#architecture" },
+            { label: "Metrics", href: "#metrics" },
+            { label: "Case Studies", href: "#case-studies" },
+            { label: "Jidoka Demo", href: "#jidoka-demo" },
+          ].map((item) => (
             <a
-              key={item}
-              href={`#${item.toLowerCase().replace(' ', '-')}`}
+              key={item.label}
+              href={item.href}
               className="font-display text-xs uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </div>
