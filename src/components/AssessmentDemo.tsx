@@ -179,10 +179,27 @@ const AssessmentDemo = () => {
   const [githubUrl, setGithubUrl] = useState("");
   const [urlError, setUrlError] = useState("");
 
+  const parseGithubUrl = (url: string): string | null => {
+    const match = url.match(/github\.com\/([^/]+\/[^/]+)/);
+    if (match) return match[1].replace(/\.git$/, "");
+    return null;
+  };
+
+  const handleGithubScan = () => {
+    setUrlError("");
+    const parsed = parseGithubUrl(githubUrl.trim());
+    if (!parsed) {
+      setUrlError("Please enter a valid GitHub repository URL (e.g. https://github.com/owner/repo)");
+      return;
+    }
+    handleScan(parsed);
+  };
+
   const handleScan = (repo: string) => {
     setSelectedRepo(repo);
     setScanning(true);
     setResult(null);
+    setUrlError("");
     setTimeout(() => {
       setResult(generateResults(repo));
       setScanning(false);
