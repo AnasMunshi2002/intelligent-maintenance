@@ -16,6 +16,7 @@ const Index = () => {
       <MetricsSection />
       <ArchitectureSection />
       <AssessmentDemo />
+      <AssessmentDashboard />
       <CaseStudiesSection />
       <JidokaDemo />
       <CTASection />
