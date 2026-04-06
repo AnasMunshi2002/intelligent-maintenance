@@ -64,13 +64,16 @@ const CaseStudiesSection = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cases.map((c, i) => (
-            <motion.div
+            <motion.a
               key={c.name}
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="group rounded-xl border border-border bg-card p-6 hover:bg-surface-elevated transition-all duration-300 hover:border-primary/30"
+              className="group rounded-xl border border-border bg-card p-6 hover:bg-surface-elevated transition-all duration-300 hover:border-primary/30 cursor-pointer block"
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="font-display text-lg font-bold text-foreground">{c.name}</span>
@@ -80,11 +83,14 @@ const CaseStudiesSection = () => {
               </div>
               <div className="font-display text-sm text-accent mb-2">{c.focus}</div>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{c.detail}</p>
-              <div className="border-t border-border pt-3">
-                <span className="font-display text-xs text-muted-foreground uppercase tracking-wider">Key Outcome</span>
-                <div className="font-display text-primary font-semibold mt-1">{c.outcome}</div>
+              <div className="border-t border-border pt-3 flex items-center justify-between">
+                <div>
+                  <span className="font-display text-xs text-muted-foreground uppercase tracking-wider">Key Outcome</span>
+                  <div className="font-display text-primary font-semibold mt-1">{c.outcome}</div>
+                </div>
+                <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Read more →</span>
               </div>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
       </div>
