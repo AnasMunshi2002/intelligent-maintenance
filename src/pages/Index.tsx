@@ -4,6 +4,7 @@ import MetricsSection from "@/components/MetricsSection";
 import ArchitectureSection from "@/components/ArchitectureSection";
 import CaseStudiesSection from "@/components/CaseStudiesSection";
 import AssessmentDemo from "@/components/AssessmentDemo";
+import AssessmentDashboard from "@/components/AssessmentDashboard";
 import JidokaDemo from "@/components/JidokaDemo";
 import CTASection from "@/components/CTASection";
 
@@ -15,6 +16,7 @@ const Index = () => {
       <MetricsSection />
       <ArchitectureSection />
       <AssessmentDemo />
+      <AssessmentDashboard />
       <CaseStudiesSection />
       <JidokaDemo />
       <CTASection />
