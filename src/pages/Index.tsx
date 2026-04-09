@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import MetricsSection from "@/components/MetricsSection";
@@ -5,17 +6,21 @@ import ArchitectureSection from "@/components/ArchitectureSection";
 import CaseStudiesSection from "@/components/CaseStudiesSection";
 import AssessmentDemo from "@/components/AssessmentDemo";
 import AssessmentDashboard from "@/components/AssessmentDashboard";
+import IntelligenceLayer from "@/components/IntelligenceLayer";
 import JidokaDemo from "@/components/JidokaDemo";
 import CTASection from "@/components/CTASection";
 
 const Index = () => {
+  const [scanResult, setScanResult] = useState<any>(null);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
       <MetricsSection />
       <ArchitectureSection />
-      <AssessmentDemo />
+      <AssessmentDemo onScanComplete={setScanResult} />
+      <IntelligenceLayer scanResult={scanResult} />
       <AssessmentDashboard />
       <CaseStudiesSection />
       <JidokaDemo />
