@@ -109,7 +109,9 @@ const AssessmentDemo = ({ onScanComplete }: AssessmentDemoProps) => {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      setResult(data as ScanResult);
+      const scanData = data as ScanResult;
+      setResult(scanData);
+      onScanComplete?.(scanData);
     } catch (e: any) {
       console.error("Scan error:", e);
       toast({
