@@ -15,6 +15,7 @@ const Navbar = () => {
           {[
             { label: "Architecture", href: "#architecture" },
             { label: "Assessment", href: "#assessment-demo" },
+            { label: "Intelligence", href: "#intelligence-layer" },
             { label: "Metrics", href: "#metrics" },
             { label: "Case Studies", href: "#case-studies" },
             { label: "Jidoka Demo", href: "#jidoka-demo" },
