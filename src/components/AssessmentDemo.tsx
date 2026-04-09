@@ -69,7 +69,11 @@ const ScoreBar = ({ score, delay }: { score: number; delay: number }) => (
   </div>
 );
 
-const AssessmentDemo = () => {
+interface AssessmentDemoProps {
+  onScanComplete?: (result: ScanResult) => void;
+}
+
+const AssessmentDemo = ({ onScanComplete }: AssessmentDemoProps) => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [githubUrl, setGithubUrl] = useState("");
