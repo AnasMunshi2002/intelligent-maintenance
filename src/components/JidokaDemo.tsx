@@ -68,9 +68,10 @@ const decisionConfig = {
 interface JidokaDemoProps {
   analysisResult: any | null;
   scanResult: any | null;
+  onRoutingComplete?: (result: JidokaResult) => void;
 }
 
-const JidokaDemo = ({ analysisResult, scanResult }: JidokaDemoProps) => {
+const JidokaDemo = ({ analysisResult, scanResult, onRoutingComplete }: JidokaDemoProps) => {
   const [routing, setRouting] = useState(false);
   const [result, setResult] = useState<JidokaResult | null>(null);
   const { toast } = useToast();
@@ -87,6 +88,7 @@ const JidokaDemo = ({ analysisResult, scanResult }: JidokaDemoProps) => {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
       setResult(data as JidokaResult);
+      onRoutingComplete?.(data as JidokaResult);
     } catch (e: any) {
       console.error("Jidoka error:", e);
       toast({ title: "Jidoka Routing Failed", description: e.message, variant: "destructive" });
