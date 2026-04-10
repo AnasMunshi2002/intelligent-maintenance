@@ -94,12 +94,44 @@ serve(async (req) => {
       // ignore
     }
 
-    // ──────── 5. Snyk: test the repo ────────
+    // ──────── 5. Snyk: auto-import + test the repo ────────
     let snykVulns: any[] = [];
     let snykError: string | null = null;
-    if (SNYK_TOKEN) {
+    const SNYK_ORG_ID = Deno.env.get("SNYK_ORG_ID");
+
+    if (SNYK_TOKEN && SNYK_ORG_ID) {
       try {
-        // Try Snyk's test endpoint for GitHub repos
+        // Step A: Auto-import the repo into Snyk org (idempotent – re-importing is safe)
+        const importBody = {
+          target: {
+            owner: owner,
+            name: repo,
+            branch: repoInfo.default_branch,
+          },
+        };
+        const importRes = await fetch(
+          `https://snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/github/import`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `token ${SNYK_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(importBody),
+          }
+        );
+        if (!importRes.ok) {
+          const importText = await importRes.text();
+          console.log(`Snyk import response (${importRes.status}): ${importText.slice(0, 300)}`);
+          // 409 = already imported, which is fine
+          if (importRes.status !== 409) {
+            snykError = `Snyk import ${importRes.status}: ${importText.slice(0, 200)}`;
+          }
+        } else {
+          console.log("Snyk import initiated successfully");
+        }
+
+        // Step B: Test the repo for vulnerabilities
         const snykRes = await fetch(
           `https://snyk.io/api/v1/test/github/${owner}/${repo}`,
           {
@@ -116,11 +148,18 @@ serve(async (req) => {
           }
         } else {
           const t = await snykRes.text();
-          snykError = `Snyk API ${snykRes.status}: ${t.slice(0, 200)}`;
+          // If 403/404 after import, the import may still be processing
+          if (importRes.ok || importRes.status === 409) {
+            snykError = `Snyk test ${snykRes.status} (repo may still be importing – try again in ~30s)`;
+          } else {
+            snykError = `Snyk API ${snykRes.status}: ${t.slice(0, 200)}`;
+          }
         }
       } catch (e) {
         snykError = `Snyk request failed: ${e instanceof Error ? e.message : String(e)}`;
       }
+    } else if (SNYK_TOKEN && !SNYK_ORG_ID) {
+      snykError = "SNYK_ORG_ID not configured";
     }
 
     // ──────── 6. GitHub: recent commits for activity ────────
