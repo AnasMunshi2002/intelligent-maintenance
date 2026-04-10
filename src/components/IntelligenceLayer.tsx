@@ -46,9 +46,10 @@ const impactColors = {
 
 interface IntelligenceLayerProps {
   scanResult: any | null;
+  onAnalysisComplete?: (analysis: AnalysisResult) => void;
 }
 
-const IntelligenceLayer = ({ scanResult }: IntelligenceLayerProps) => {
+const IntelligenceLayer = ({ scanResult, onAnalysisComplete }: IntelligenceLayerProps) => {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
@@ -66,7 +67,9 @@ const IntelligenceLayer = ({ scanResult }: IntelligenceLayerProps) => {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      setAnalysis(data.analysis as AnalysisResult);
+      const analysisData = data.analysis as AnalysisResult;
+      setAnalysis(analysisData);
+      onAnalysisComplete?.(analysisData);
     } catch (e: any) {
       console.error("Analysis error:", e);
       toast({
