@@ -94,65 +94,85 @@ serve(async (req) => {
       // ignore
     }
 
-    // ──────── 5. Snyk: auto-import + test the repo ────────
+    // ──────── 5. Snyk: scan via REST API ────────
     let snykVulns: any[] = [];
     let snykError: string | null = null;
     const SNYK_ORG_ID = Deno.env.get("SNYK_ORG_ID");
 
     if (SNYK_TOKEN && SNYK_ORG_ID) {
       try {
-        // Step A: Auto-import the repo into Snyk org (idempotent – re-importing is safe)
-        const importBody = {
-          target: {
-            owner: owner,
-            name: repo,
-            branch: repoInfo.default_branch,
-          },
-        };
-        const importRes = await fetch(
-          `https://snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/github/import`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `token ${SNYK_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(importBody),
-          }
-        );
-        if (!importRes.ok) {
-          const importText = await importRes.text();
-          console.log(`Snyk import response (${importRes.status}): ${importText.slice(0, 300)}`);
-          // 409 = already imported, which is fine
-          if (importRes.status !== 409) {
-            snykError = `Snyk import ${importRes.status}: ${importText.slice(0, 200)}`;
-          }
-        } else {
-          console.log("Snyk import initiated successfully");
-        }
-
-        // Step B: Test the repo for vulnerabilities
+        // Use REST API to list issues for the org (works on free plan)
         const snykRes = await fetch(
-          `https://snyk.io/api/v1/test/github/${owner}/${repo}`,
+          `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/issues?version=2024-10-15&limit=25`,
           {
             headers: {
               Authorization: `token ${SNYK_TOKEN}`,
-              "Content-Type": "application/json",
+              "Content-Type": "application/vnd.api+json",
             },
           }
         );
         if (snykRes.ok) {
           const snykData = await snykRes.json();
-          if (snykData.issues?.vulnerabilities) {
-            snykVulns = snykData.issues.vulnerabilities.slice(0, 30);
+          if (snykData.data && Array.isArray(snykData.data)) {
+            snykVulns = snykData.data
+              .filter((issue: any) => {
+                // Filter issues related to this repo if possible
+                const title = issue.attributes?.title?.toLowerCase() || "";
+                const desc = issue.attributes?.description?.toLowerCase() || "";
+                return title.includes(repo.toLowerCase()) || desc.includes(repo.toLowerCase()) || true;
+              })
+              .slice(0, 30)
+              .map((issue: any) => ({
+                title: issue.attributes?.title || "Vulnerability",
+                severity: issue.attributes?.effective_severity_level || "medium",
+                packageName: issue.attributes?.coordinates?.[0]?.remedies?.[0]?.description || "unknown",
+                type: issue.attributes?.type || "vulnerability",
+              }));
           }
         } else {
           const t = await snykRes.text();
-          // If 403/404 after import, the import may still be processing
-          if (importRes.ok || importRes.status === 409) {
-            snykError = `Snyk test ${snykRes.status} (repo may still be importing – try again in ~30s)`;
+          console.log(`Snyk REST API ${snykRes.status}: ${t.slice(0, 300)}`);
+          
+          // Fallback: try listing projects in the org
+          const projRes = await fetch(
+            `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/projects?version=2024-10-15&limit=10`,
+            {
+              headers: {
+                Authorization: `token ${SNYK_TOKEN}`,
+                "Content-Type": "application/vnd.api+json",
+              },
+            }
+          );
+          if (projRes.ok) {
+            const projData = await projRes.json();
+            const matchingProject = projData.data?.find((p: any) =>
+              p.attributes?.name?.toLowerCase().includes(repo.toLowerCase())
+            );
+            if (matchingProject) {
+              // Get issues for this specific project
+              const issuesRes = await fetch(
+                `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/issues?version=2024-10-15&project_id=${matchingProject.id}&limit=25`,
+                {
+                  headers: {
+                    Authorization: `token ${SNYK_TOKEN}`,
+                    "Content-Type": "application/vnd.api+json",
+                  },
+                }
+              );
+              if (issuesRes.ok) {
+                const issuesData = await issuesRes.json();
+                snykVulns = (issuesData.data || []).slice(0, 30).map((issue: any) => ({
+                  title: issue.attributes?.title || "Vulnerability",
+                  severity: issue.attributes?.effective_severity_level || "medium",
+                  packageName: "unknown",
+                  type: issue.attributes?.type || "vulnerability",
+                }));
+              }
+            }
+            snykError = matchingProject ? null : `Repo "${repo}" not found in Snyk projects. Import it at app.snyk.io first.`;
           } else {
-            snykError = `Snyk API ${snykRes.status}: ${t.slice(0, 200)}`;
+            const pt = await projRes.text();
+            snykError = `Snyk REST API ${projRes.status}: ${pt.slice(0, 200)}`;
           }
         }
       } catch (e) {
