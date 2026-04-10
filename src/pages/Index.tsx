@@ -8,11 +8,13 @@ import AssessmentDemo from "@/components/AssessmentDemo";
 import AssessmentDashboard from "@/components/AssessmentDashboard";
 import IntelligenceLayer from "@/components/IntelligenceLayer";
 import JidokaDemo from "@/components/JidokaDemo";
+import ClientDecisionPanel from "@/components/ClientDecisionPanel";
 import CTASection from "@/components/CTASection";
 
 const Index = () => {
   const [scanResult, setScanResult] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [jidokaResult, setJidokaResult] = useState<any>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -22,7 +24,8 @@ const Index = () => {
       <ArchitectureSection />
       <AssessmentDemo onScanComplete={setScanResult} />
       <IntelligenceLayer scanResult={scanResult} onAnalysisComplete={setAnalysisResult} />
-      <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} />
+      <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} onRoutingComplete={setJidokaResult} />
+      <ClientDecisionPanel jidokaResult={jidokaResult} />
       <AssessmentDashboard />
       <CaseStudiesSection />
       <CTASection />
