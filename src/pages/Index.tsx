@@ -22,9 +22,9 @@ const Index = () => {
       <ArchitectureSection />
       <AssessmentDemo onScanComplete={setScanResult} />
       <IntelligenceLayer scanResult={scanResult} onAnalysisComplete={setAnalysisResult} />
+      <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} />
       <AssessmentDashboard />
       <CaseStudiesSection />
-      <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} />
       <CTASection />
       
       {/* Footer */}
