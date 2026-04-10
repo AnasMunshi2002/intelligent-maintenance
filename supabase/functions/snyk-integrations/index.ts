@@ -11,25 +11,22 @@ serve(async (req) => {
   const SNYK_TOKEN = Deno.env.get("SNYK_API_TOKEN");
   const SNYK_ORG_ID = Deno.env.get("SNYK_ORG_ID");
 
-  // Try v1 API with "token" prefix
-  const v1Res = await fetch(`https://snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations`, {
-    headers: { Authorization: `token ${SNYK_TOKEN}` },
-  });
-  const v1Status = v1Res.status;
-  const v1Body = await v1Res.text();
+  const endpoints = [
+    { name: "self", url: "https://api.snyk.io/rest/self?version=2024-10-15" },
+    { name: "orgs", url: "https://api.snyk.io/rest/orgs?version=2024-10-15" },
+    { name: "projects", url: `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/projects?version=2024-10-15&limit=5` },
+    { name: "targets", url: `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/targets?version=2024-10-15&limit=5` },
+  ];
 
-  // Try REST API with "token" prefix  
-  const restRes = await fetch(`https://api.snyk.io/rest/self?version=2024-10-15`, {
-    headers: { Authorization: `token ${SNYK_TOKEN}` },
-  });
-  const restStatus = restRes.status;
-  const restBody = await restRes.text();
+  const results: any = {};
+  for (const ep of endpoints) {
+    const res = await fetch(ep.url, {
+      headers: { Authorization: `token ${SNYK_TOKEN}`, "Content-Type": "application/vnd.api+json" },
+    });
+    results[ep.name] = { status: res.status, body: (await res.text()).slice(0, 400) };
+  }
 
-  return new Response(JSON.stringify({
-    tokenLength: SNYK_TOKEN?.length || 0,
-    tokenPrefix: SNYK_TOKEN?.substring(0, 8) || "none",
-    orgId: SNYK_ORG_ID,
-    v1: { status: v1Status, body: v1Body.slice(0, 300) },
-    rest: { status: restStatus, body: restBody.slice(0, 300) },
-  }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(results, null, 2), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });
