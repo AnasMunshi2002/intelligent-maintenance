@@ -94,65 +94,52 @@ serve(async (req) => {
       // ignore
     }
 
-    // ──────── 5. Snyk: auto-import + test the repo ────────
+    // ──────── 5. Snyk: auto-import via targets + scan ────────
     let snykVulns: any[] = [];
     let snykError: string | null = null;
     const SNYK_ORG_ID = Deno.env.get("SNYK_ORG_ID");
+    const snykHeaders = {
+      Authorization: `token ${SNYK_TOKEN}`,
+      "Content-Type": "application/vnd.api+json",
+    };
 
     if (SNYK_TOKEN && SNYK_ORG_ID) {
       try {
-        // Step A: Auto-import the repo into Snyk org (idempotent – re-importing is safe)
-        const importBody = {
-          target: {
-            owner: owner,
-            name: repo,
-            branch: repoInfo.default_branch,
-          },
-        };
-        const importRes = await fetch(
-          `https://snyk.io/api/v1/org/${SNYK_ORG_ID}/integrations/github/import`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `token ${SNYK_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(importBody),
-          }
+        // Check if target already exists
+        const targetsRes = await fetch(
+          `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/targets?version=2024-10-15&limit=100`,
+          { headers: snykHeaders }
         );
-        if (!importRes.ok) {
-          const importText = await importRes.text();
-          console.log(`Snyk import response (${importRes.status}): ${importText.slice(0, 300)}`);
-          // 409 = already imported, which is fine
-          if (importRes.status !== 409) {
-            snykError = `Snyk import ${importRes.status}: ${importText.slice(0, 200)}`;
-          }
-        } else {
-          console.log("Snyk import initiated successfully");
+        let targetExists = false;
+        if (targetsRes.ok) {
+          const targetsData = await targetsRes.json();
+          targetExists = targetsData.data?.some((t: any) =>
+            t.attributes?.display_name?.toLowerCase() === `${owner}/${repo}`.toLowerCase() ||
+            t.attributes?.url?.toLowerCase().includes(`${owner}/${repo}`.toLowerCase())
+          ) || false;
         }
 
-        // Step B: Test the repo for vulnerabilities
-        const snykRes = await fetch(
-          `https://snyk.io/api/v1/test/github/${owner}/${repo}`,
-          {
-            headers: {
-              Authorization: `token ${SNYK_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (snykRes.ok) {
-          const snykData = await snykRes.json();
-          if (snykData.issues?.vulnerabilities) {
-            snykVulns = snykData.issues.vulnerabilities.slice(0, 30);
-          }
+        if (!targetExists) {
+          console.log(`Repo ${owner}/${repo} not in Snyk targets, noting for user`);
+          snykError = `Repo not imported in Snyk yet. Import "${owner}/${repo}" at app.snyk.io to enable vulnerability scanning.`;
         } else {
-          const t = await snykRes.text();
-          // If 403/404 after import, the import may still be processing
-          if (importRes.ok || importRes.status === 409) {
-            snykError = `Snyk test ${snykRes.status} (repo may still be importing – try again in ~30s)`;
+          // Target exists – try to get issues (may be limited on free plan)
+          const issuesRes = await fetch(
+            `https://api.snyk.io/rest/orgs/${SNYK_ORG_ID}/issues?version=2024-10-15&limit=25`,
+            { headers: snykHeaders }
+          );
+          if (issuesRes.ok) {
+            const issuesData = await issuesRes.json();
+            snykVulns = (issuesData.data || []).slice(0, 30).map((issue: any) => ({
+              title: issue.attributes?.title || "Vulnerability",
+              severity: issue.attributes?.effective_severity_level || "medium",
+              packageName: issue.attributes?.coordinates?.[0]?.remedies?.[0]?.description || "unknown",
+              type: issue.attributes?.type || "vulnerability",
+            }));
           } else {
-            snykError = `Snyk API ${snykRes.status}: ${t.slice(0, 200)}`;
+            const t = await issuesRes.text();
+            snykError = `Snyk issues API: ${issuesRes.status} (some endpoints require a paid plan)`;
+            console.log(`Snyk issues ${issuesRes.status}: ${t.slice(0, 200)}`);
           }
         }
       } catch (e) {
