@@ -12,6 +12,7 @@ import CTASection from "@/components/CTASection";
 
 const Index = () => {
   const [scanResult, setScanResult] = useState<any>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,10 +21,10 @@ const Index = () => {
       <MetricsSection />
       <ArchitectureSection />
       <AssessmentDemo onScanComplete={setScanResult} />
-      <IntelligenceLayer scanResult={scanResult} />
+      <IntelligenceLayer scanResult={scanResult} onAnalysisComplete={setAnalysisResult} />
       <AssessmentDashboard />
       <CaseStudiesSection />
-      <JidokaDemo />
+      <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} />
       <CTASection />
       
       {/* Footer */}
