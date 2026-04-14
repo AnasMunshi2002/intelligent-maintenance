@@ -51,10 +51,14 @@ function deriveMetrics(data: PipelineData) {
   const totalFindings = jidokaResult?.routedFindings?.length ?? analysisResult?.prioritizedFindings?.length ?? scanResult?.findings?.length ?? 0;
   const riskLevel = analysisResult?.riskLevel ?? jidokaResult?.riskLevel ?? "medium";
 
-  // Health scores
-  const healthScores = scanResult?.healthScores ?? {};
+  // Health scores — values may be numbers or objects like {category, score, grade, color}
+  const rawHealthScores = scanResult?.healthScores ?? {};
+  const healthScores: Record<string, number> = {};
+  for (const [k, v] of Object.entries(rawHealthScores)) {
+    healthScores[k] = typeof v === "number" ? v : (v as any)?.score ?? 0;
+  }
   const avgHealth = Object.values(healthScores).length > 0
-    ? Math.round((Object.values(healthScores) as number[]).reduce((a, b) => a + b, 0) / Object.values(healthScores).length)
+    ? Math.round(Object.values(healthScores).reduce((a, b) => a + b, 0) / Object.values(healthScores).length)
     : 50;
 
   // Tech debt
