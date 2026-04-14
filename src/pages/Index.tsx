@@ -27,8 +27,8 @@ const Index = () => {
       <IntelligenceLayer scanResult={scanResult} onAnalysisComplete={setAnalysisResult} />
       <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} onRoutingComplete={setJidokaResult} />
       <ClientDecisionPanel jidokaResult={jidokaResult} />
-      <AssessmentDashboard />
       <GovernanceDashboard />
+      <AssessmentDashboard />
       <CaseStudiesSection />
       <CTASection />
       
