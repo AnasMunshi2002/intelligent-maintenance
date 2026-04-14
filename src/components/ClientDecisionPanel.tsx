@@ -121,6 +121,15 @@ const ClientDecisionPanel = ({ jidokaResult, onDecisionsComplete }: ClientDecisi
 
   const handleSubmit = () => {
     setSubmitted(true);
+    const total = jidokaResult.routedFindings.length;
+    const autoCount = Object.values(decisions).filter((d) => d === "ai_auto").length;
+    onDecisionsComplete?.({
+      summary: { ...summary },
+      totalFindings: total,
+      automationRate: Math.round(((autoCount + Object.values(decisions).filter((d) => d === "guided").length) / total) * 100),
+      estimatedTimeSavedHours: jidokaResult.summary?.estimatedTimeSavedHours ?? autoCount * 2,
+      decisions,
+    });
   };
 
   const summary = {
