@@ -78,11 +78,20 @@ const decisionColor = {
   human_required: "text-red-400",
 };
 
-interface ClientDecisionPanelProps {
-  jidokaResult: JidokaResult | null;
+export interface ClientDecisions {
+  summary: { ai_auto: number; guided: number; manual: number };
+  totalFindings: number;
+  automationRate: number;
+  estimatedTimeSavedHours: number;
+  decisions: Record<number, ClientChoice>;
 }
 
-const ClientDecisionPanel = ({ jidokaResult }: ClientDecisionPanelProps) => {
+interface ClientDecisionPanelProps {
+  jidokaResult: JidokaResult | null;
+  onDecisionsComplete?: (decisions: ClientDecisions) => void;
+}
+
+const ClientDecisionPanel = ({ jidokaResult, onDecisionsComplete }: ClientDecisionPanelProps) => {
   const [decisions, setDecisions] = useState<Record<number, ClientChoice>>({});
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -112,6 +121,15 @@ const ClientDecisionPanel = ({ jidokaResult }: ClientDecisionPanelProps) => {
 
   const handleSubmit = () => {
     setSubmitted(true);
+    const total = jidokaResult.routedFindings.length;
+    const autoCount = Object.values(decisions).filter((d) => d === "ai_auto").length;
+    onDecisionsComplete?.({
+      summary: { ...summary },
+      totalFindings: total,
+      automationRate: Math.round(((autoCount + Object.values(decisions).filter((d) => d === "guided").length) / total) * 100),
+      estimatedTimeSavedHours: jidokaResult.summary?.estimatedTimeSavedHours ?? autoCount * 2,
+      decisions,
+    });
   };
 
   const summary = {

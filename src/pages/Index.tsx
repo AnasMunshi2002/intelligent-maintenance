@@ -8,7 +8,7 @@ import AssessmentDemo from "@/components/AssessmentDemo";
 import AssessmentDashboard from "@/components/AssessmentDashboard";
 import IntelligenceLayer from "@/components/IntelligenceLayer";
 import JidokaDemo from "@/components/JidokaDemo";
-import ClientDecisionPanel from "@/components/ClientDecisionPanel";
+import ClientDecisionPanel, { type ClientDecisions } from "@/components/ClientDecisionPanel";
 import GovernanceDashboard from "@/components/GovernanceDashboard";
 import CTASection from "@/components/CTASection";
 
@@ -16,6 +16,7 @@ const Index = () => {
   const [scanResult, setScanResult] = useState<any>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [jidokaResult, setJidokaResult] = useState<any>(null);
+  const [clientDecisions, setClientDecisions] = useState<ClientDecisions | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -26,8 +27,8 @@ const Index = () => {
       <AssessmentDemo onScanComplete={setScanResult} />
       <IntelligenceLayer scanResult={scanResult} onAnalysisComplete={setAnalysisResult} />
       <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} onRoutingComplete={setJidokaResult} />
-      <ClientDecisionPanel jidokaResult={jidokaResult} />
-      <GovernanceDashboard />
+      <ClientDecisionPanel jidokaResult={jidokaResult} onDecisionsComplete={setClientDecisions} />
+      <GovernanceDashboard pipelineData={{ scanResult, analysisResult, jidokaResult, clientDecisions }} />
       <AssessmentDashboard />
       <CaseStudiesSection />
       <CTASection />
