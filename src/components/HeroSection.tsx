@@ -36,10 +36,10 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="gap-2">
+            <Button variant="hero" size="lg" className="gap-2" onClick={() => document.querySelector("#assessment-demo")?.scrollIntoView({ behavior: "smooth" })}>
               Explore Framework <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button variant="heroOutline" size="lg">
+            <Button variant="heroOutline" size="lg" onClick={() => document.querySelector("#architecture")?.scrollIntoView({ behavior: "smooth" })}>
               View Architecture
             </Button>
           </div>
