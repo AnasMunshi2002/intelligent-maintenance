@@ -9,6 +9,7 @@ import AssessmentDashboard from "@/components/AssessmentDashboard";
 import IntelligenceLayer from "@/components/IntelligenceLayer";
 import JidokaDemo from "@/components/JidokaDemo";
 import ClientDecisionPanel from "@/components/ClientDecisionPanel";
+import GovernanceDashboard from "@/components/GovernanceDashboard";
 import CTASection from "@/components/CTASection";
 
 const Index = () => {
