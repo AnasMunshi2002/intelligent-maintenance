@@ -28,6 +28,7 @@ const Index = () => {
       <JidokaDemo analysisResult={analysisResult} scanResult={scanResult} onRoutingComplete={setJidokaResult} />
       <ClientDecisionPanel jidokaResult={jidokaResult} />
       <AssessmentDashboard />
+      <GovernanceDashboard />
       <CaseStudiesSection />
       <CTASection />
       
