@@ -11,18 +11,22 @@ const Navbar = () => {
           <span className="font-display text-sm font-bold tracking-wider text-foreground">IntelliOps</span>
         </div>
         
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           {[
-            { label: "Architecture", href: "#architecture" },
-            { label: "Assessment", href: "#assessment-demo" },
-            { label: "Intelligence", href: "#intelligence-layer" },
-            { label: "Metrics", href: "#metrics" },
+            { label: "L1 Scanner", href: "#assessment-demo" },
+            { label: "L2 Intelligence", href: "#intelligence-layer" },
+            { label: "L3 Jidoka", href: "#jidoka-demo" },
+            { label: "L4 Decisions", href: "#client-decisions" },
+            { label: "L5 Governance", href: "#governance" },
             { label: "Case Studies", href: "#case-studies" },
-            { label: "Jidoka Demo", href: "#jidoka-demo" },
           ].map((item) => (
             <a
               key={item.label}
               href={item.href}
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector(item.href)?.scrollIntoView({ behavior: "smooth" });
+              }}
               className="font-display text-xs uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
             >
               {item.label}
