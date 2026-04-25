@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bot, UserCheck, AlertTriangle, Loader2, Zap, GitPullRequest, Ticket, CheckCircle, ArrowRight, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -187,8 +186,8 @@ const JidokaDemo = ({ analysisResult, scanResult, onRoutingComplete }: JidokaDem
                     <div className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">Total Findings</div>
                   </div>
                   <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-4 text-center">
-                    <div className="font-display text-2xl font-bold text-emerald-400">{result.summary.automationRate}%</div>
-                    <div className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">Automation Rate</div>
+                    <div className="font-display text-2xl font-bold text-emerald-400">{result.stats.auto_fix + result.stats.supervised}</div>
+                    <div className="text-[10px] font-display text-muted-foreground uppercase tracking-wider">Automatable</div>
                   </div>
                   <div className="rounded-xl border border-border bg-card p-4 text-center">
                     <div className="font-display text-2xl font-bold text-foreground">{result.summary.estimatedTimeSavedHours}h</div>
@@ -227,30 +226,22 @@ const JidokaDemo = ({ analysisResult, scanResult, onRoutingComplete }: JidokaDem
                               <p className="text-xs text-foreground/80 mt-0.5">{r.finding.originalFinding}</p>
                             </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <div className={`font-display text-xl font-bold ${cfg.color}`}>{r.confidence}%</div>
-                            <div className="text-[10px] font-display text-muted-foreground">Confidence</div>
-                          </div>
-                        </div>
-
-                        <div className="mb-3">
-                          <Progress value={r.confidence} className="h-2" />
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-3">
                           <div className="rounded-md bg-background/50 p-3">
                             <div className="flex items-center gap-1 mb-1">
                               <AlertTriangle className="w-3 h-3 text-muted-foreground" />
-                              <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground">Reasoning</span>
+                              <span className="font-display text-[10px] uppercase tracking-wider text-muted-foreground">Why This Decision</span>
                             </div>
                             <p className="text-xs text-foreground/70">{r.reasoning}</p>
                           </div>
                           <div className="rounded-md bg-background/50 p-3">
                             <div className="flex items-center gap-1 mb-1">
                               <Zap className="w-3 h-3 text-purple-400" />
-                              <span className="font-display text-[10px] uppercase tracking-wider text-purple-400">CI/CD Action</span>
+                              <span className="font-display text-[10px] uppercase tracking-wider text-purple-400">Suggested Action</span>
                             </div>
-                            <p className="text-xs text-foreground/70">{r.ciAction}</p>
+                            <p className="text-xs text-foreground/70">{r.finding.fixSuggestion || r.ciAction}</p>
                           </div>
                         </div>
                       </motion.div>
