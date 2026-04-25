@@ -3,8 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, UserCheck, GitPullRequest, BookOpen, Wrench, CheckCircle2,
   ChevronDown, ChevronUp, Zap, Shield, AlertTriangle, ClipboardList,
+  Loader2, ExternalLink, Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface RoutedFinding {
   finding: {
@@ -95,6 +98,57 @@ const ClientDecisionPanel = ({ jidokaResult, onDecisionsComplete }: ClientDecisi
   const [decisions, setDecisions] = useState<Record<number, ClientChoice>>({});
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [executing, setExecuting] = useState<Record<number, boolean>>({});
+  const [prResults, setPrResults] = useState<Record<number, { url: string; number: number } | { error: string }>>({});
+  const { toast } = useToast();
+
+  const handleExecutePR = async (i: number, r: RoutedFinding) => {
+    if (!jidokaResult) return;
+    setExecuting((p) => ({ ...p, [i]: true }));
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-fix-pr", {
+        body: {
+          repo: jidokaResult.repo,
+          finding: r.finding.originalFinding,
+          fixSuggestion: r.finding.fixSuggestion,
+          decision: r.decision,
+          confidence: r.confidence,
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.success) throw new Error(data?.error || "PR creation failed");
+
+      setPrResults((p) => ({ ...p, [i]: { url: data.prUrl, number: data.prNumber } }));
+      // Log decision (best-effort, don't block UX)
+      supabase.from("decisions").insert({
+        repository: jidokaResult.repo,
+        finding: r.finding.originalFinding,
+        decision: r.decision,
+        confidence: r.confidence,
+        fix_suggestion: r.finding.fixSuggestion,
+        pr_url: data.prUrl,
+        pr_number: data.prNumber,
+        branch_name: data.branch,
+        execution_status: "pr_created",
+      }).then(() => {});
+      toast({ title: "Pull Request Created", description: `PR #${data.prNumber} opened on ${jidokaResult.repo}` });
+    } catch (e: any) {
+      console.error("auto-fix execution failed:", e);
+      setPrResults((p) => ({ ...p, [i]: { error: e.message } }));
+      supabase.from("decisions").insert({
+        repository: jidokaResult.repo,
+        finding: r.finding.originalFinding,
+        decision: r.decision,
+        confidence: r.confidence,
+        fix_suggestion: r.finding.fixSuggestion,
+        execution_status: "failed",
+        error_message: e.message,
+      }).then(() => {});
+      toast({ title: "Auto-Fix Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setExecuting((p) => ({ ...p, [i]: false }));
+    }
+  };
 
   if (!jidokaResult) {
     return (
@@ -263,6 +317,53 @@ const ClientDecisionPanel = ({ jidokaResult, onDecisionsComplete }: ClientDecisi
                                   </div>
                                   <p className="text-xs text-foreground/70">{r.finding.fixSuggestion}</p>
                                 </div>
+
+                                {/* Real PR execution — appears once AI Auto-Fix is chosen */}
+                                {chosen === "ai_auto" && (
+                                  <div className="rounded-lg border border-emerald-400/30 bg-emerald-400/5 p-3">
+                                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                                      <div className="flex items-center gap-2">
+                                        <Rocket className="w-3.5 h-3.5 text-emerald-400" />
+                                        <span className="font-display text-[10px] uppercase tracking-wider text-emerald-400">
+                                          Closed-Loop Execution
+                                        </span>
+                                      </div>
+                                      {prResults[i] && "url" in prResults[i] ? (
+                                        <a
+                                          href={(prResults[i] as { url: string }).url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:underline"
+                                        >
+                                          PR #{(prResults[i] as { number: number }).number} opened
+                                          <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                      ) : (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          disabled={executing[i]}
+                                          onClick={(e) => { e.stopPropagation(); handleExecutePR(i, r); }}
+                                          className="gap-1.5 h-7 text-xs"
+                                        >
+                                          {executing[i] ? (
+                                            <><Loader2 className="w-3 h-3 animate-spin" /> Opening PR…</>
+                                          ) : (
+                                            <><GitPullRequest className="w-3 h-3" /> Execute · Open Real PR</>
+                                          )}
+                                        </Button>
+                                      )}
+                                    </div>
+                                    {prResults[i] && "error" in prResults[i] && (
+                                      <p className="text-[10px] text-red-400 mt-2">
+                                        {(prResults[i] as { error: string }).error}
+                                      </p>
+                                    )}
+                                    <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed">
+                                      Creates a branch on <span className="text-foreground/80">{jidokaResult.repo}</span>, commits the recommendation under <code className="text-foreground/80">.intelliops/fixes/</code>, and opens a real GitHub PR for review.
+                                    </p>
+                                  </div>
+                                )}
 
                                 {/* Client choice buttons */}
                                 <div>
