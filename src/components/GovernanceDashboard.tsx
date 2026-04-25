@@ -12,6 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import type { ClientDecisions } from "@/components/ClientDecisionPanel";
+import ClosedLoopAuditPanel from "@/components/ClosedLoopAuditPanel";
 
 /* ─── Types ─── */
 interface PipelineData {
@@ -236,6 +237,9 @@ const GovernanceDashboard = ({ pipelineData }: GovernanceDashboardProps) => {
             <span>Automation: <span className="font-bold text-primary">{m.effectiveAutomationRate}%</span></span>
           </div>
         </motion.div>
+
+        {/* ── Closed-Loop Audit Trail (real PRs from Layer 4) ── */}
+        <ClosedLoopAuditPanel />
 
         {/* ── DORA KPI Cards ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
