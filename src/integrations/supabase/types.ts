@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      decisions: {
+        Row: {
+          branch_name: string | null
+          confidence: number | null
+          created_at: string
+          decision: string
+          error_message: string | null
+          execution_status: string
+          finding: string
+          fix_suggestion: string | null
+          id: string
+          pr_number: number | null
+          pr_url: string | null
+          repository: string
+        }
+        Insert: {
+          branch_name?: string | null
+          confidence?: number | null
+          created_at?: string
+          decision: string
+          error_message?: string | null
+          execution_status?: string
+          finding: string
+          fix_suggestion?: string | null
+          id?: string
+          pr_number?: number | null
+          pr_url?: string | null
+          repository: string
+        }
+        Update: {
+          branch_name?: string | null
+          confidence?: number | null
+          created_at?: string
+          decision?: string
+          error_message?: string | null
+          execution_status?: string
+          finding?: string
+          fix_suggestion?: string | null
+          id?: string
+          pr_number?: number | null
+          pr_url?: string | null
+          repository?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
