@@ -89,6 +89,64 @@ export interface ClientDecisions {
   decisions: Record<number, ClientChoice>;
 }
 
+// Step-by-step playbook the framework runs (or guides the user through) for each choice.
+function buildPlaybook(choice: Exclude<ClientChoice, null>, r: RoutedFinding, repo: string): {
+  title: string;
+  intro: string;
+  steps: { label: string; detail: string }[];
+  outcome: string;
+} {
+  const fix = r.finding.fixSuggestion;
+  const finding = r.finding.originalFinding;
+
+  if (choice === "ai_auto") {
+    return {
+      title: "What the framework will do automatically",
+      intro: `IntelliOps takes full ownership of remediation — no human keystrokes required until the PR review stage.`,
+      steps: [
+        { label: "1. Branch creation", detail: `Create a fresh branch on ${repo} (e.g. intelliops/auto-fix-${Date.now().toString(36)}) off the default branch.` },
+        { label: "2. Patch synthesis", detail: `Translate the AI suggestion into a concrete code/config change: "${fix}".` },
+        { label: "3. Commit & push", detail: `Commit the change under .intelliops/fixes/ with a descriptive message tying back to the finding.` },
+        { label: "4. Open Pull Request", detail: `Open a real GitHub PR with full context: finding, confidence (${r.confidence}%), reasoning, and rollback notes.` },
+        { label: "5. Persist decision", detail: `Log the action in the decisions table → streamed live to the Layer 5 Governance audit feed.` },
+        { label: "6. CI gating", detail: `CI runs (tests, linters, Snyk) — only green builds are eligible for auto-merge per Jidoka policy.` },
+      ],
+      outcome: `Mean time-to-remediation collapses from days to minutes. You only intervene if CI fails or the PR review surfaces concerns.`,
+    };
+  }
+
+  if (choice === "guided") {
+    return {
+      title: "Step-by-step guidance for your engineer",
+      intro: `IntelliOps prepares the playbook; a human implements it. Best for medium-confidence findings or business-critical paths.`,
+      steps: [
+        { label: "1. Reproduce locally", detail: `Pull ${repo}, check out a new branch (fix/${finding.slice(0, 24).replace(/\W+/g, "-").toLowerCase()}), and confirm the issue exists.` },
+        { label: "2. Apply the recommended change", detail: `${fix}` },
+        { label: "3. Add a regression test", detail: `Cover the failure mode so this exact finding cannot reappear silently.` },
+        { label: "4. Run the full test suite", detail: `Validate locally, then push the branch to trigger CI (lint + unit + integration + security scan).` },
+        { label: "5. Open PR with the AI brief", detail: `Paste the AI reasoning ("${r.reasoning}") and confidence (${r.confidence}%) into the PR description for reviewer context.` },
+        { label: "6. Peer review & merge", detail: `Reviewer validates against the playbook. Merge once CI is green and at least one approval lands.` },
+      ],
+      outcome: `Engineers ship faster because diagnosis, fix design, and reviewer context are pre-written by the framework.`,
+    };
+  }
+
+  // manual
+  return {
+    title: "Manual resolution checklist",
+    intro: `Confidence is low or the issue requires domain expertise. IntelliOps stays out of the code path but still scaffolds the workflow.`,
+    steps: [
+      { label: "1. Create an issue ticket", detail: `Auto-file an issue on ${repo} with title, finding, AI context, and severity (${r.finding.businessImpact}).` },
+      { label: "2. Assign an owner", detail: `Route to the team-lead based on CODEOWNERS / repo metadata; SLA timer starts.` },
+      { label: "3. Investigate root cause", detail: `Engineer analyses the finding without prescriptive AI patches — full human judgement applies.` },
+      { label: "4. Design & implement fix", detail: `Approach is decided by the engineer; the AI suggestion ("${fix}") is provided only as a non-binding hint.` },
+      { label: "5. Document the resolution", detail: `Resolution notes feed back into IntelliOps so future similar findings raise confidence.` },
+      { label: "6. Close the loop", detail: `Mark the decision resolved in the audit trail with the linked PR/commit and post-mortem if applicable.` },
+    ],
+    outcome: `Nothing is silently dropped. Even fully manual fixes are tracked, measured, and feed the learning loop.`,
+  };
+}
+
 interface ClientDecisionPanelProps {
   jidokaResult: JidokaResult | null;
   onDecisionsComplete?: (decisions: ClientDecisions) => void;
