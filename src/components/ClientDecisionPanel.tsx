@@ -463,6 +463,47 @@ const ClientDecisionPanel = ({ jidokaResult, onDecisionsComplete }: ClientDecisi
                                     )}
                                   </div>
                                 </div>
+
+                                {/* Step-by-step playbook for the selected choice */}
+                                {chosen && (() => {
+                                  const pb = buildPlaybook(chosen, r, jidokaResult.repo);
+                                  const cfg = choiceConfig[chosen];
+                                  return (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: 6 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      className={`rounded-lg border ${cfg.border} ${cfg.bg} p-4`}
+                                    >
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <ListChecks className={`w-3.5 h-3.5 ${cfg.color}`} />
+                                        <span className={`font-display text-[10px] uppercase tracking-wider ${cfg.color}`}>
+                                          {pb.title}
+                                        </span>
+                                      </div>
+                                      <p className="text-[11px] text-foreground/70 mb-3 leading-relaxed">{pb.intro}</p>
+                                      <ol className="space-y-2">
+                                        {pb.steps.map((s, idx) => (
+                                          <li key={idx} className="flex gap-2">
+                                            <span className={`font-display text-[10px] font-bold ${cfg.color} shrink-0 w-12`}>
+                                              Step {idx + 1}
+                                            </span>
+                                            <div className="flex-1">
+                                              <div className="text-[11px] font-semibold text-foreground/90">{s.label.replace(/^\d+\.\s*/, "")}</div>
+                                              <div className="text-[10px] text-muted-foreground leading-relaxed">{s.detail}</div>
+                                            </div>
+                                          </li>
+                                        ))}
+                                      </ol>
+                                      <div className={`mt-3 pt-3 border-t ${cfg.border} flex gap-2 items-start`}>
+                                        <CheckCircle2 className={`w-3 h-3 mt-0.5 ${cfg.color} shrink-0`} />
+                                        <p className="text-[10px] text-foreground/70 leading-relaxed">
+                                          <span className={`font-display uppercase tracking-wider mr-1 ${cfg.color}`}>Outcome:</span>
+                                          {pb.outcome}
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                })()}
                               </div>
                             </motion.div>
                           )}
