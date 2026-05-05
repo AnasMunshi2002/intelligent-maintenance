@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, UserCheck, GitPullRequest, BookOpen, Wrench, CheckCircle2,
   ChevronDown, ChevronUp, Zap, Shield, AlertTriangle, ClipboardList,
-  Loader2, ExternalLink, Rocket,
+  Loader2, ExternalLink, Rocket, ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
