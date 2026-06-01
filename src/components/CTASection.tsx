@@ -21,11 +21,24 @@ const CTASection = () => {
             IntelliOps provides the reference architecture your team needs to converge AI and DevOps for smarter software maintenance.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="gap-2">
+            <Button
+              variant="hero"
+              size="lg"
+              className="gap-2"
+              onClick={() =>
+                document.querySelector("#assessment-demo")?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
               Get Started <ArrowRight className="w-4 h-4" />
             </Button>
-            <Button variant="heroOutline" size="lg" className="gap-2">
-              <Github className="w-4 h-4" /> View on GitHub
+            <Button variant="heroOutline" size="lg" className="gap-2" asChild>
+              <a
+                href="https://github.com/anasmunshi/intelliops"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Github className="w-4 h-4" /> View on GitHub
+              </a>
             </Button>
           </div>
         </motion.div>
