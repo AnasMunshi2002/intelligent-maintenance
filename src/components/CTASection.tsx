@@ -33,7 +33,7 @@ const CTASection = () => {
             </Button>
             <Button variant="heroOutline" size="lg" className="gap-2" asChild>
               <a
-                href="https://github.com/anasmunshi/intelliops"
+                href="https://github.com/AnasMunshi2002/intelligent-maintenance"
                 target="_blank"
                 rel="noopener noreferrer"
               >
