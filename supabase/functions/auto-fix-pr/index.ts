@@ -146,6 +146,18 @@ Deno.serve(async (req) => {
       }),
     });
 
+    await logDecision({
+      repository: body.repo,
+      finding: body.finding,
+      decision: body.decision ?? "unknown",
+      confidence: body.confidence ?? null,
+      fix_suggestion: body.fixSuggestion ?? null,
+      pr_url: pr.html_url,
+      pr_number: pr.number,
+      branch_name: branch,
+      execution_status: "pr_created",
+    });
+
     return new Response(
       JSON.stringify({
         success: true,
