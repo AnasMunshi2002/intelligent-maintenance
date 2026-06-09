@@ -25,6 +25,26 @@ interface RequestBody {
 
 const GITHUB_API = "https://api.github.com";
 
+async function logDecision(row: Record<string, unknown>) {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+  try {
+    await fetch(`${url}/rest/v1/decisions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify(row),
+    });
+  } catch (e) {
+    console.error("logDecision failed:", e);
+  }
+}
+
 async function gh(path: string, token: string, init: RequestInit = {}) {
   const res = await fetch(`${GITHUB_API}${path}`, {
     ...init,
@@ -56,6 +76,14 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as RequestBody;
     if (!body?.repo || !body?.finding) throw new Error("repo and finding are required");
     if (!body.repo.includes("/")) throw new Error("repo must be in 'owner/name' format");
+
+    // Basic input validation to prevent abuse / oversized payloads
+    if (body.repo.length > 140 || !/^[\w.-]+\/[\w.-]+$/.test(body.repo)) {
+      throw new Error("invalid repo format");
+    }
+    if (body.finding.length > 4000) throw new Error("finding too long");
+    if (body.fixSuggestion && body.fixSuggestion.length > 8000) throw new Error("fixSuggestion too long");
+    if (body.decision && body.decision.length > 60) throw new Error("decision too long");
 
     const [owner, repoName] = body.repo.split("/");
 
@@ -129,6 +157,20 @@ Deno.serve(async (req) => {
     );
   } catch (e: any) {
     console.error("auto-fix-pr error:", e);
+    try {
+      const b = await req.clone().json().catch(() => null) as RequestBody | null;
+      if (b?.repo && b?.finding) {
+        await logDecision({
+          repository: b.repo,
+          finding: b.finding,
+          decision: b.decision ?? "unknown",
+          confidence: b.confidence ?? null,
+          fix_suggestion: b.fixSuggestion ?? null,
+          execution_status: "failed",
+          error_message: String(e?.message ?? e).slice(0, 500),
+        });
+      }
+    } catch (_) {}
     return new Response(
       JSON.stringify({ success: false, error: e?.message ?? String(e) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 },
