@@ -14,7 +14,6 @@ interface DecisionRow {
   pr_number: number | null;
   branch_name: string | null;
   execution_status: string;
-  error_message: string | null;
   created_at: string;
 }
 
@@ -30,25 +29,16 @@ const ClosedLoopAuditPanel = () => {
 
   const fetchRows = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("decisions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(20);
-    if (!error && data) setRows(data as DecisionRow[]);
+    const { data, error } = await supabase.functions.invoke("list-decisions");
+    if (!error && data?.rows) setRows(data.rows as DecisionRow[]);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchRows();
-    // Realtime updates
-    const ch = supabase
-      .channel("decisions-feed")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "decisions" }, (payload) => {
-        setRows((prev) => [payload.new as DecisionRow, ...prev].slice(0, 20));
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    // Poll every 15s for new audit entries (Realtime disabled for security).
+    const t = setInterval(fetchRows, 15000);
+    return () => clearInterval(t);
   }, []);
 
   const total = rows.length;
@@ -118,9 +108,6 @@ const ClosedLoopAuditPanel = () => {
                       <span className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
                     </div>
                     <p className="text-xs text-foreground/80 truncate">{r.finding}</p>
-                    {r.error_message && (
-                      <p className="text-[10px] text-red-400 mt-1">{r.error_message}</p>
-                    )}
                   </div>
                 </div>
                 {r.pr_url && (

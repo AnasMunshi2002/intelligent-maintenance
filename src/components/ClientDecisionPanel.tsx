@@ -177,31 +177,12 @@ const ClientDecisionPanel = ({ jidokaResult, onDecisionsComplete }: ClientDecisi
       if (!data?.success) throw new Error(data?.error || "PR creation failed");
 
       setPrResults((p) => ({ ...p, [i]: { url: data.prUrl, number: data.prNumber } }));
-      // Log decision (best-effort, don't block UX)
-      supabase.from("decisions").insert({
-        repository: jidokaResult.repo,
-        finding: r.finding.originalFinding,
-        decision: r.decision,
-        confidence: r.confidence,
-        fix_suggestion: r.finding.fixSuggestion,
-        pr_url: data.prUrl,
-        pr_number: data.prNumber,
-        branch_name: data.branch,
-        execution_status: "pr_created",
-      }).then(() => {});
+      // Decision is logged server-side by the auto-fix-pr edge function.
       toast({ title: "Pull Request Created", description: `PR #${data.prNumber} opened on ${jidokaResult.repo}` });
     } catch (e: any) {
       console.error("auto-fix execution failed:", e);
       setPrResults((p) => ({ ...p, [i]: { error: e.message } }));
-      supabase.from("decisions").insert({
-        repository: jidokaResult.repo,
-        finding: r.finding.originalFinding,
-        decision: r.decision,
-        confidence: r.confidence,
-        fix_suggestion: r.finding.fixSuggestion,
-        execution_status: "failed",
-        error_message: e.message,
-      }).then(() => {});
+      // Failure is also logged server-side by the edge function.
       toast({ title: "Auto-Fix Failed", description: e.message, variant: "destructive" });
     } finally {
       setExecuting((p) => ({ ...p, [i]: false }));
